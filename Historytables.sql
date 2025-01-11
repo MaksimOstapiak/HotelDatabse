@@ -1,0 +1,64 @@
+ALTER TABLE Employees ADD
+ValidFrom DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN
+    CONSTRAINT DF_Employees_ValidFrom DEFAULT SYSUTCDATETIME(),
+ValidTo DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN
+    CONSTRAINT DF_Employees_ValidTo DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.9999999'),
+PERIOD FOR SYSTEM_TIME(ValidFrom, ValidTo);
+GO
+
+ALTER TABLE Employees
+    SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.Employees_History));
+
+ALTER TABLE EmployeeDetails ADD
+ValidFrom DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN
+    CONSTRAINT DF_EmployeeDetails_ValidFrom DEFAULT SYSUTCDATETIME(),
+ValidTo DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN
+    CONSTRAINT DF_EmployeeDetails_ValidTo DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.9999999'),
+PERIOD FOR SYSTEM_TIME(ValidFrom, ValidTo);
+GO
+
+ALTER TABLE EmployeeDetails
+    SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.EmployeeDetails_History));
+
+ALTER TABLE Clients ADD
+ValidFrom DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN
+    CONSTRAINT DF_Clients_ValidFrom DEFAULT SYSUTCDATETIME(),
+ValidTo DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN
+    CONSTRAINT DF_Clients_ValidTo DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.9999999'),
+PERIOD FOR SYSTEM_TIME(ValidFrom, ValidTo);
+GO
+
+ALTER TABLE Clients
+    SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.Clients_History));
+
+ALTER TABLE ClientStatus ADD
+ValidFrom DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN
+    CONSTRAINT DF_ClientStatus_ValidFrom DEFAULT SYSUTCDATETIME(),
+ValidTo DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN
+    CONSTRAINT DF_ClientStatus_ValidTo DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.9999999'),
+PERIOD FOR SYSTEM_TIME(ValidFrom, ValidTo);
+GO
+
+ALTER TABLE ClientStatus
+    SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.ClientStatus_History));
+
+--вибірка усіх змін даних працівника з id 1
+SELECT *, ValidFrom, ValidTo
+FROM dbo.Employees
+FOR SYSTEM_TIME ALL
+WHERE EmployeeID = 1;
+
+--вибірка усіх змін даних (без актуальної версії)
+SELECT * FROM dbo.Employees_History;
+
+--вибірка усіх працівників, що мали зарплату від 40 до 70 тисяч і дані яких вже не актуальні
+SELECT * 
+FROM dbo.EmployeeDetails_History
+WHERE Salary BETWEEN 40000.00 AND 70000.00;
+
+--вибірка усіх клієнтів, що мали і мають статус VIP або NEW
+
+SELECT *, ValidFrom, ValidTo
+FROM ClientStatus
+FOR SYSTEM_TIME ALL
+WHERE StatusVIP IN ('VIP','NEW');
